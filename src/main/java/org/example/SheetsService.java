@@ -7,6 +7,8 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -40,6 +42,29 @@ public class SheetsService {
             GoogleJsonError error = e.getDetails();
             if (error.getCode() == 404) {
                 System.out.printf("Spreadsheet not found with id '%s'.\n", spreadsheetsId);
+            } else {
+                throw e;
+            }
+        }
+        return result;
+    }
+
+    public AppendValuesResponse append(String spreadsheetId, String range, String valueInputOption, List<List<Object>> values) throws IOException {
+        AppendValuesResponse result = null;
+        try {
+            // Append values to the specified range.
+            ValueRange body = new ValueRange()
+                    .setValues(values);
+            result = sheets.spreadsheets().values().append(spreadsheetId, range, body)
+                    .setValueInputOption(valueInputOption)
+                    .execute();
+            // Prints the spreadsheet with appended values.
+            System.out.printf("%d cells appended.", result.getUpdates().getUpdatedCells());
+        } catch (GoogleJsonResponseException e) {
+            // TODO(developer) - handle error appropriately
+            GoogleJsonError error = e.getDetails();
+            if (error.getCode() == 404) {
+                System.out.printf("Spreadsheet not found with id '%s'.\n", spreadsheetId);
             } else {
                 throw e;
             }
