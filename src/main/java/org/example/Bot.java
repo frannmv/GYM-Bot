@@ -1,11 +1,14 @@
 package org.example;
 
+import com.google.api.services.sheets.v4.model.ValueRange;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ForwardMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.*;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.io.IOException;
 
 public class Bot extends TelegramLongPollingBot {
 
@@ -24,6 +27,13 @@ public class Bot extends TelegramLongPollingBot {
 
         if (msg.hasText()) {
             if(msg.getText().equals("hola")){
+                try {
+                    ValueRange result = sheets.read(System.getenv("SPREADSHEET_ID"),"Ejercicios!A1:E1");
+                    String respuesta = result.getValues().toString() != null ? result.getValues().toString() : "La hoja está vacia en ese rango";
+                    getEjercicio(chatId, respuesta);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
                 deleteMessage(chatId,msg.getMessageId());
                 sendMessage(chatId);
             }
@@ -57,6 +67,20 @@ public class Bot extends TelegramLongPollingBot {
         super.onRegister();
     }
 
+    public void getEjercicio(Long chatId, String message) {
+        SendMessage msg = SendMessage.builder()
+                .chatId(chatId)
+                .parseMode("MarkdownV2")
+                .text("Contenido de la Hoja: "+ message)
+                .build();
+
+        try {
+            execute(msg);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     public void copyMessage(Long chatId, String message) {
         SendMessage msg = SendMessage.builder()
                 .chatId(chatId)
