@@ -22,6 +22,7 @@ public class Bot extends TelegramLongPollingBot {
     private final SheetsService sheets;
     private final String BOT_TOKEN = System.getenv("GYMBOT_TOKEN");
     private final String SPREADSHEET_ID = System.getenv("SPREADSHEET_ID");
+    private boolean loggear = false;
 
     private InlineKeyboardButton volver = InlineKeyboardButton.builder()
             .text("VOLVER")
@@ -114,13 +115,27 @@ public class Bot extends TelegramLongPollingBot {
                     case "/start":
                         sendMessage(chatId,"Bienvenido!");
                         return;
+                    case "/help":
+                        sendMessage(chatId, "Para registrar un ejercicio escribi: /log <ejercicio> <seriesXReps> <peso>");
+                        return;
                     case "/menu":
                         sendMenu(chatId,"¿Que rutina estas haciendo? 🏋️‍♂️",menu);
                         return;
-                    case "/help":
-                        sendMessage(chatId, "Para registrar un ejercicio escribi: /log <ejercicio> <seriesXReps> <peso>");
+                    case "/log":
+                        sendMessage(chatId, "Registre el ejercicio: \n\n ⚠️ <ejercicio> <seriesXReps> <peso> ");
+                        loggear = true;
+                        return;
                     default:
                         sendMessage(chatId,"❌ Comando no reconocido");
+                }
+            }
+
+            if(loggear) {
+                loggear = false;
+                try {
+                    logHandler(chatId, msg.getText());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
 
@@ -134,16 +149,6 @@ public class Bot extends TelegramLongPollingBot {
                 }
             }
 
-            if(msg.getText().startsWith("/log")){
-                try {
-                    logHandler(chatId, msg.getText());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            //copyMessage(chatId,msg.getText());
-            //forwardMessage(chatId,user.getId(),msg.getMessageId());
             System.out.println("Fist Name: " + user.getFirstName() + " Last Name: " + user.getLastName());
             System.out.println("Is Bot? " + user.getIsBot());
             System.out.println("Mensaje enviado: " + msg.getText());
@@ -226,13 +231,7 @@ public class Bot extends TelegramLongPollingBot {
 
         try {
 
-            String[] partes = message.split(" ", 2);
-            if (partes.length < 2) {
-                sendMessage(chatId, "⚠️ Uso correcto: /log <ejercicio> <detalle>");
-                return;
-            }
-
-            String[] contenido = partes[1].split(" ");
+            String[] contenido = message.split(" ");
             String ejercicio = contenido[0];
             String seriesXReps = contenido[1];
             String peso = contenido[2];
