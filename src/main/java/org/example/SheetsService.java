@@ -8,7 +8,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.AppendValuesResponse;
-import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
 import java.io.IOException;
@@ -37,7 +36,6 @@ public class SheetsService {
             result = sheets.spreadsheets().values().get(spreadsheetsId,range).execute();
             int numRows = result.getValues() != null ? result.getValues().size() : 0;
             System.out.println("rows retrieved: " + numRows);
-            //List<List<Object>> values = result.getValues();
         } catch (GoogleJsonResponseException e) {
             GoogleJsonError error = e.getDetails();
             if (error.getCode() == 404) {
